@@ -32,27 +32,28 @@ export default function RegisterProductPage() {
                 {products.length > 0 ? (
                     <ul className="space-y-4">
                         {products.map((product) => (
-                            <li key={product.id} className="p-4 border rounded">
+                            <li key={product.id} className="p-4 border rounded shadow">
                                 <p><strong>Nome:</strong> {product.name}</p>
                                 <p><strong>Descrição:</strong> {product.description}</p>
                                 <p><strong>Preço:</strong> R$ {product.price.toFixed(2)}</p>
                                 <p><strong>Estoque:</strong> {product.stock} unidades</p>
                                 <p><strong>ID da Categoria:</strong> {product.categoryId}</p>
+                                <p><strong>ID da Categoria:</strong> {product.category}</p>
                                 <div className="mt-4">
                                     <strong>Imagens:</strong>
                                     <div className="flex gap-4 mt-2">
                                         {product.image1 && (
                                             <img
-                                                src={`/images/${product.image1}`}
+                                                src={product.image1} // URL completa do Cloudinary
                                                 alt="Imagem 1 do Produto"
-                                                className="w-32 h-32 object-cover"
+                                                className="w-32 h-32 object-cover rounded"
                                             />
                                         )}
                                         {product.image2 && (
                                             <img
-                                                src={`/images/${product.image2}`}
+                                                src={product.image2} // URL completa do Cloudinary
                                                 alt="Imagem 2 do Produto"
-                                                className="w-32 h-32 object-cover"
+                                                className="w-32 h-32 object-cover rounded"
                                             />
                                         )}
                                     </div>
@@ -64,7 +65,7 @@ export default function RegisterProductPage() {
                         ))}
                     </ul>
                 ) : (
-                    <p>Nenhum produto cadastrado. Adicione um novo produto para começar.</p>
+                    <p className="text-gray-700">Nenhum produto cadastrado. Adicione um novo produto para começar.</p>
                 )}
             </div>
         </Homepage>
