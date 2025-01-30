@@ -43,6 +43,9 @@ const Navbar = () => {
                         <Link href="/cadastrarprodutos">
                             <p className="text-gray-700 hover:text-green-600">Cadastrar produto</p>
                         </Link>
+                        <Link href="/carrinho">
+                            <p className="text-gray-700 hover:text-green-600">Carrinho</p>
+                        </Link>
                     </div>
 
                     {/* Authentication Links for Desktop */}
@@ -123,6 +126,9 @@ const Navbar = () => {
                         </Link>
                         <Link href="/cadastrarprodutos" onClick={toggleMenu}>
                             <p className="text-gray-700 hover:text-green-600">Cadastrar produto</p>
+                        </Link>
+                        <Link href="/carrinho">
+                            <p className="text-gray-700 hover:text-green-600">Carrinho</p>
                         </Link>
 
                         {/* Authentication Links for Mobile */}
