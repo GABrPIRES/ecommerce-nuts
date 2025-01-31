@@ -5,22 +5,21 @@ const prisma = new PrismaClient();
 
 type ItemInput = {
     productId: string;
-    quantity: string;
-    price: Float32Array;
+    quantity: number;
+    price: number;
 };
 
+// Criar um novo pedido (POST)
 export async function POST(request: Request) {
     try {
         const body = await request.json();
         const { userId, total, items } = body;
 
-        // Valida os dados obrigatórios
         if (!userId || !total || !items || items.length === 0) {
-            return NextResponse.json({ error: "Erro ao adiconar algum campo do produto" }, { status: 400 });
+            return NextResponse.json({ error: "Erro ao adicionar algum campo do pedido" }, { status: 400 });
         }
 
-        // Cria o usuário e o endereço
-        const newOrder = await prisma.user.create({
+        const newOrder = await prisma.order.create({
             data: {
                 userId,
                 total,
@@ -32,104 +31,54 @@ export async function POST(request: Request) {
                     })),
                 },
             },
-            include: {
-                items: true,
-            },
+            include: { items: true },
         });
 
-        return NextResponse.json(newUser, { status: 201 });
+        return NextResponse.json(newOrder, { status: 201 });
     } catch (error) {
-        console.error("Erro ao registrar o usuário:", error);
-        return NextResponse.json({ error: "Erro ao registrar o usuário" }, { status: 500 });
+        console.error("Erro ao criar pedido:", error);
+        return NextResponse.json({ error: "Erro ao criar pedido" }, { status: 500 });
     }
 }
 
-// Método GET - Listar Produtos
+// Listar todos os pedidos (GET)
 export async function GET() {
     try {
-        const products = await prisma.product.findMany();
-        return NextResponse.json(products, { status: 200 });
-    } catch (error: any) {
+        const orders = await prisma.order.findMany({ include: { items: true } });
+        return NextResponse.json(orders, { status: 200 });
+    } catch (error) {
         console.error(error);
-        return NextResponse.json(
-            { error: "Erro ao listar os produtos" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: "Erro ao listar pedidos" }, { status: 500 });
     }
 }
 
-// Método PUT - Atualizar Produto
-export async function PUT(req: Request) {
+// Atualizar o total do pedido (PUT)
+export async function PUT(request: Request) {
     try {
-        const body = await req.json();
-        const { id, name, description, price, stock, categoryId } = body;
+        const { orderId, total } = await request.json();
 
-        if (!id) {
-            throw new Error("ID do produto é obrigatório para atualização.");
-        }
-
-        const updatedProduct = await prisma.product.update({
-            where: { id },
-            data: {
-                name,
-                description,
-                price: parseFloat(price),
-                stock: parseInt(stock, 10),
-                categoryId,
-            },
+        const updatedOrder = await prisma.order.update({
+            where: { id: orderId },
+            data: { total },
         });
 
-        return NextResponse.json(updatedProduct, { status: 200 });
-    } catch (error: any) {
+        return NextResponse.json(updatedOrder, { status: 200 });
+    } catch (error) {
         console.error(error);
-        return NextResponse.json(
-            { error: error.message || "Erro ao atualizar o produto" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: "Erro ao atualizar pedido" }, { status: 500 });
     }
 }
 
-// Método DELETE - Remover Produto
-export async function DELETE(req: Request) {
+// Excluir um pedido (DELETE)
+export async function DELETE(request: Request) {
     try {
-        const body = await req.json();
-        const { id } = body;
+        const { orderId } = await request.json();
 
-        if (!id) {
-            throw new Error("ID do produto é obrigatório para exclusão.");
-        }
+        await prisma.order.delete({ where: { id: orderId } });
 
-        // Busca o produto no banco de dados
-        const product = await prisma.product.findUnique({
-            where: { id },
-        });
-
-        if (!product) {
-            throw new Error("Produto não encontrado.");
-        }
-
-        // Remove as imagens associadas no Cloudinary
-        if (product.image1) {
-            const image1PublicId = product.image1.split("/").pop()?.split(".")[0]; // Extrai o Public ID
-            await cloudinary.uploader.destroy(`ecommerce-nuts/${image1PublicId}`);
-        }
-
-        if (product.image2) {
-            const image2PublicId = product.image2.split("/").pop()?.split(".")[0]; // Extrai o Public ID
-            await cloudinary.uploader.destroy(`ecommerce-nuts/${image2PublicId}`);
-        }
-
-        // Remove o produto do banco de dados
-        await prisma.product.delete({
-            where: { id },
-        });
-
-        return NextResponse.json({ message: "Produto deletado com sucesso." }, { status: 200 });
-    } catch (error: any) {
+        return NextResponse.json({ message: "Pedido deletado com sucesso." }, { status: 200 });
+    } catch (error) {
         console.error(error);
-        return NextResponse.json(
-            { error: error.message || "Erro ao deletar o produto" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: "Erro ao deletar pedido" }, { status: 500 });
     }
 }
