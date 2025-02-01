@@ -7,19 +7,20 @@ import React from "react";
 import { useAuth } from "@/app/AuthContext";
 import { useRouter } from "next/navigation";
 
-export default function ProductDetails({ params }: { params: Promise<{ id: string }> }) {
+export default function ProductDetails({ params }: { params: { id: string } }) {
     const [product, setProduct] = useState(null);
     const [errorMessage, setErrorMessage] = useState(null);
-    const [selectedImage, setSelectedImage] = useState(""); // Estado para controlar a imagem selecionada
-    const [zoomStyle, setZoomStyle] = useState({}); // Estado para o estilo do zoom
-    const [isZooming, setIsZooming] = useState(false); // Controle de zoom ativado/desativado
-    const { isAuthenticated, user, logout } = useAuth();
-    const router = useRouter(); // Hook para manipular o redirecionamento
+    const [selectedImage, setSelectedImage] = useState("");
+    const [zoomStyle, setZoomStyle] = useState({});
+    const [isZooming, setIsZooming] = useState(false);
+    const [order, setOrder] = useState(null);
+    const [orderItem, setOrderItem] = useState(null);
+    const { isAuthenticated, user } = useAuth();
+    const router = useRouter();
 
-    // Desestruturação de `params` como Promise
     const { id } = React.use(params);
 
-    // Fetch para carregar a lista de produtos e encontrar o produto pelo ID
+    // Fetch para carregar os produtos
     useEffect(() => {
         fetch(`/api/products`)
             .then((res) => res.json())
@@ -27,7 +28,7 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
                 const foundProduct = data.find((product) => product.id === id);
                 if (foundProduct) {
                     setProduct(foundProduct);
-                    setSelectedImage(foundProduct.image1); // Define a imagem padrão
+                    setSelectedImage(foundProduct.image1);
                 } else {
                     setErrorMessage("Produto não encontrado.");
                 }
@@ -35,16 +36,33 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
             .catch(() => setErrorMessage("Erro ao carregar o produto."));
     }, [id]);
 
-    if (errorMessage) {
-        return (
-            <Homepage>
-                <div className="max-w-6xl mx-auto mt-8">
-                    <p className="text-red-500">{errorMessage}</p>
-                </div>
-            </Homepage>
-        );
-    }
+    // Fetch para buscar pedidos do usuário
+    useEffect(() => {
+        if (!user) return;
 
+        fetch(`/api/orders`)
+            .then((res) => res.json())
+            .then((data) => {
+                const userOrder = data.find((order) => order.userId === user.id);
+                setOrder(userOrder || null);
+            })
+            .catch(() => setOrder(null));
+    }, [user]);
+
+    // Fetch para buscar itens do pedido
+    useEffect(() => {
+        if (!order) return;
+
+        fetch(`/api/orderItem`)
+            .then((res) => res.json())
+            .then((data) => {
+                const items = data.filter((item) => item.orderId === order.id);
+                setOrderItem(items.length > 0 ? items : null);
+            })
+            .catch(() => setOrderItem(null));
+    }, [order]);
+
+    // Se o produto ainda está carregando
     if (!product) {
         return (
             <Homepage>
@@ -67,7 +85,7 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
         setZoomStyle({
             backgroundImage: `url(${selectedImage})`,
             backgroundPosition: `${x}% ${y}%`,
-            backgroundSize: "200%", // Zoom de 200%
+            backgroundSize: "200%",
         });
     };
 
@@ -83,8 +101,12 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
     const handleSubmit = async (event) => {
         event.preventDefault();
         if (!isAuthenticated) {
+            alert("Precisa estar logado para adicionar produtos ao carrinho.");
+            return;
+        }
 
-        } else {
+        // Se o pedido ainda não existe, cria um novo
+        if (!order) {
             const formData = {
                 userId: user.id,
                 total: product.price,
@@ -106,12 +128,60 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
             if (response.ok) {
                 alert("Produto adicionado com sucesso no carrinho!");
                 router.push("/carrinho");
-                // const newCarrinho = Atualiza o preço do newCarrinho.
             } else {
                 alert("Erro ao adicionar produto no carrinho!");
             }
-        }
+        } else {
+            // Se o pedido já existe, adiciona um novo item ou atualiza a quantidade
+            const existingItem = orderItem?.find((item) => item.productId === product.id);
 
+            console.log(existingItem)
+
+            if (!existingItem) {
+                const formData = {
+                    orderId: order.id,
+                    productId: product.id,
+                    quantity: 1,
+                    price: product.price,
+                };
+
+                const response = await fetch("/api/orderItem", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData),
+                });
+
+                if (response.ok) {
+                    alert("Produto adicionado ao carrinho!");
+                    router.push("/carrinho");
+                } else {
+                    alert("Erro ao adicionar produto!");
+                }
+            } else {
+                const newQuantity = existingItem.quantity + 1;
+
+                const formData = {
+                    itemId: existingItem.id,
+                    quantity: newQuantity,
+                    price: existingItem.price,
+                };
+
+                const response = await fetch(`/api/orderItem`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData),
+                });
+
+                console.log(response)
+
+                if (response.ok) {
+                    alert("Quantidade atualizada no carrinho!");
+                    router.push("/carrinho");
+                } else {
+                    alert("Erro ao atualizar a quantidade!");
+                }
+            }
+        }
     };
 
     return (
