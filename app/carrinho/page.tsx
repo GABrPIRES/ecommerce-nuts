@@ -10,6 +10,8 @@ export default function CartPage() {
     const [orderItems, setOrderItems] = useState([]);
     const [products, setProducts] = useState([]);
     const [errorMessage, setErrorMessage] = useState(null);
+    const [itemIdDelete, setItemIdDelete] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     // Busca o pedido do usuário
     useEffect(() => {
@@ -76,6 +78,16 @@ export default function CartPage() {
         );
     };
 
+    const alertDeleteItem = async (itemId) => {
+        setItemIdDelete(itemId);
+        setShowDeleteModal(true);
+    };
+
+    const closeDeleteModal = async () => {
+        setShowDeleteModal(false);
+        setItemIdDelete(null);
+    }
+
     // Remove um item do carrinho
     const removeItem = async (itemId) => {
         await fetch(`/api/orderItem`, {
@@ -84,6 +96,7 @@ export default function CartPage() {
             body: JSON.stringify({ itemId }),
         });
 
+        setShowDeleteModal(false);
         setOrderItems(orderItems.filter((item) => item.id !== itemId));
     };
 
@@ -161,12 +174,14 @@ export default function CartPage() {
                                     </div>
 
                                     {/* Botão de Remover */}
-                                    <button
-                                        onClick={() => removeItem(item.id)}
-                                        className="ml-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                                    >
-                                        Remover
-                                    </button>
+                                    <div className="w-full md:w-auto mt-4 md:mt-0 flex justify-center md:justify-end p-4">
+                                        <button
+                                            onClick={() => alertDeleteItem(item.id)}
+                                            className="w-full md:w-auto px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+                                        >
+                                            Remover
+                                        </button>
+                                    </div>
                                 </div>
                             );
                         })}
@@ -178,6 +193,31 @@ export default function CartPage() {
                                 R$ {totalPedido.toFixed(2)}
                             </p>
                         </div>
+
+                        {showDeleteModal && (
+                            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-10 backdrop-blur-md z-50 p-4">
+                                <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full text-center">
+                                    <p className="text-lg font-semibold text-gray-800 mb-4">
+                                        Deseja realmente remover este item do seu carrinho?
+                                    </p>
+                                    <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4">
+                                        <button
+                                            onClick={() => removeItem(itemIdDelete)}
+                                            className="w-full sm:w-auto px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                                        >
+                                            Sim
+                                        </button>
+                                        <button
+                                            onClick={closeDeleteModal}
+                                            className="w-full sm:w-auto px-6 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
 
                         {/* Botões de Finalizar Compra */}
                         <div className="flex flex-col md:flex-row justify-center gap-4 mt-6">
