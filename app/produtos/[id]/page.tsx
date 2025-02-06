@@ -127,7 +127,8 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
 
             if (response.ok) {
                 alert("Produto adicionado com sucesso no carrinho!");
-                router.push("/carrinho");
+                window.location.reload();
+                window.location.href = "/carrinho";
             } else {
                 alert("Erro ao adicionar produto no carrinho!");
             }
@@ -153,7 +154,8 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
 
                 if (response.ok) {
                     alert("Produto adicionado ao carrinho!");
-                    router.push("/carrinho");
+                    window.location.reload();
+                    window.location.href = "/carrinho";
                 } else {
                     alert("Erro ao adicionar produto!");
                 }
@@ -176,7 +178,8 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
 
                 if (response.ok) {
                     alert("Quantidade atualizada no carrinho!");
-                    router.push("/carrinho");
+                    window.location.reload();
+                    window.location.href = "/carrinho";
                 } else {
                     alert("Erro ao atualizar a quantidade!");
                 }

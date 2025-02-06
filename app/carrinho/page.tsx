@@ -5,7 +5,7 @@ import { useAuth } from "../AuthContext";
 import Homepage from "../components/template/page";
 
 export default function CartPage() {
-    const { user } = useAuth();
+    const { isAuthenticated, user, logout } = useAuth();
     const [order, setOrder] = useState(null);
     const [orderItems, setOrderItems] = useState([]);
     const [products, setProducts] = useState([]);
@@ -15,23 +15,19 @@ export default function CartPage() {
 
     // Busca o pedido do usuário
     useEffect(() => {
-        if (!user) {
-            setErrorMessage("Você precisa estar logado para acessar o carrinho.");
-            return;
-        }
-
         fetch(`/api/orders`)
             .then((res) => res.json())
             .then((data) => {
                 const userOrder = data.find((order) => order.userId === user.id);
                 if (userOrder) {
                     setOrder(userOrder);
+                    console.log("Deu certo", userOrder)
                 } else {
                     setErrorMessage("Nenhum pedido encontrado.");
                 }
             })
-            .catch(() => setErrorMessage("Erro ao carregar pedidos."));
-    }, [user]);
+            .catch(() => setErrorMessage(null));
+    }, [user, isAuthenticated]);
 
     // Busca os itens do pedido
     useEffect(() => {
@@ -60,6 +56,8 @@ export default function CartPage() {
             })
             .catch(() => setErrorMessage("Erro ao carregar produtos do pedido."));
     }, [orderItems]);
+
+
 
     // Atualiza a quantidade do item no carrinho
     const updateItemQuantity = async (itemId, newQuantity) => {
@@ -96,6 +94,7 @@ export default function CartPage() {
             body: JSON.stringify({ itemId }),
         });
 
+        window.location.reload();
         setShowDeleteModal(false);
         setOrderItems(orderItems.filter((item) => item.id !== itemId));
     };
