@@ -1,12 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import { Carousel } from 'react-responsive-carousel';
+import 'react-responsive-carousel/lib/styles/carousel.min.css'
 
 export default function Home() {
   const desktopImages = [
     "/images/banner_1.jpg",
-    "/images/banner_1.jpg",
-    "/images/banner_1.jpg",
+    "/images/banner_2.jpg",
+    "/images/banner_3.png",
   ];
 
   const mobileImages = [
@@ -44,48 +46,16 @@ export default function Home() {
   }, [images.length]);
 
   return (
-    <div className="mt-[208px] xs:mt-[150px] sm:mt-[150px] min-h-screen pt-30 pb-20 gap-16 font-[family-name:var(--font-geist-sans)]">
-      {/* Carrossel */}
-      <div className="relative w-full h-[50vh] overflow-hidden">
-        {/* Imagens do Carrossel */}
-        <div
-          className="flex transition-transform duration-700 ease-in-out"
-          style={{
-            transform: `translateX(-${currentIndex * 100}%)`,
-            width: `${images.length * 100}%`, // Define a largura total do contêiner pai
-          }}
-        >
-          {images.map((image, index) => (
-            <div
-              key={index}
-              className="flex-shrink-0 w-full h-full"
-              style={{
-                width: "100%", // Cada imagem ocupa 100% da largura do contêiner visível
-              }}
-            >
-              <img
-                src={image}
-                alt={`Slide ${index + 1}`}
-                className=""
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Indicadores (Dots) */}
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
-          {images.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`w-3 h-3 rounded-full ${currentIndex === index
-                ? "bg-green-600"
-                : "bg-gray-400"
-                }`}
-            ></button>
-          ))}
-        </div>
-      </div>
+    <div className="mt-[45px] sm:mt-[45px] md:mt-[98px] lg:mt-[98px] min-h-screen pb-20 gap-16 font-[family-name:var(--font-geist-sans)]">
+      <Carousel showThumbs={true} autoPlay>
+        {desktopImages.map((image, index) => (
+          <div key={index}>
+            <a className="flex">
+              <img src={image} alt="banner" className="h-[70vh] md:h-[50vh]" />
+            </a>
+          </div>
+        ))}
+      </Carousel>
 
       {/* Conteúdo abaixo do carrossel */}
       <div className="max-w-7xl mx-auto px-6 py-16">
